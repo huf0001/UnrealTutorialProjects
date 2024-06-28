@@ -72,6 +72,17 @@ Plugins/*/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+
 */Binaries/*
+*/Plugins/*/Binaries/*
+*/Build/*
+*/Build/*/**
+*/DerivedDataCache/*
 */Intermediate/*
+*/Plugins/*/Intermediate/*
 */Saved/*
+
+!*/Build/*/
+!*/Build/*/PakBlacklist*.txt
+!*/Build/**/*.ico
