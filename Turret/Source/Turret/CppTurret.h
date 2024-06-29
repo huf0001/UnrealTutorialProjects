@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Engine/EngineTypes.h"
 #include "CppTurret.generated.h"
 
 UCLASS()
@@ -20,6 +21,27 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 		UStaticMeshComponent* Beam;
+
+	UPROPERTY(VisibleAnywhere)
+		USceneComponent* Target1;
+
+	UPROPERTY(VisibleAnywhere)
+		USceneComponent* Target2;
+
+	UPROPERTY(VisibleAnywhere)
+		USceneComponent* BeamTarget;
+
+	UPROPERTY()
+		int TimerCount = 0;
+
+	UPROPERTY()
+		FTimerHandle TimerHandle;
+
+	UFUNCTION()
+		void UpdateLookAtTarget();
+
+	UFUNCTION()
+		void ChangeBeamTarget();
 
 public:	
 	// Sets default values for this actor's properties
