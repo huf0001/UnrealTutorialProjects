@@ -12,15 +12,26 @@ class TURRET_API ACppTurret : public AActor
 {
 	GENERATED_BODY()
 
-private:
+#pragma region Protected Serialized Variables
+
+protected:
+	//Beam length variables
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		float BeamLength = 1000.0f;
+
+#pragma endregion
 
 #pragma region Private Serialized Variables
+
+private:
+	//Turret Components
 	UPROPERTY(VisibleAnywhere)
 		USceneComponent* Root;
 	
 	UPROPERTY(EditDefaultsOnly)
 		USkeletalMeshComponent* TurretMesh;
 
+	//Beam and Targeting Components
 	UPROPERTY(VisibleAnywhere)
 		UStaticMeshComponent* Beam;
 
@@ -33,8 +44,9 @@ private:
 	UPROPERTY(VisibleAnywhere)
 		USceneComponent* BeamTarget;
 
+	//Rotation variables
 	UPROPERTY()
-		FTimerHandle TimerHandle;
+		FTimerHandle ChangeTargetTimerHandle;
 
 	UPROPERTY(EditAnywhere)
 		float ChangeTargetDelay = 5.0f;
@@ -45,10 +57,27 @@ private:
 	UPROPERTY(EditAnywhere)
 		float TargetRotationErrorMargin = 1.0f;
 
+	//Beam Length variables
+
+	UPROPERTY()
+		FTimerHandle TraceTimerHandle;
+
+#pragma endregion
+
+#pragma region Protected Non-Serialized Variables
+
+protected:
+
+	//Beam Length variables
+	FCollisionQueryParams CollQueryParams;
+
 #pragma endregion
 
 #pragma region Private Non-Serialized Variables
 
+private:
+
+	//Rotation variables
 	int TimerCount = 0;
 	FRotator LookAtRotation;
 	FRotator TargetRotation;
@@ -82,6 +111,12 @@ private:
 
 	UFUNCTION()
 		void ChangeBeamTarget();
+
+	UFUNCTION(BlueprintCallable)
+		void SetBeamLength(float Length);
+
+	UFUNCTION()
+		void TraceBeam();
 
 #pragma endregion
 

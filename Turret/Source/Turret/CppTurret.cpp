@@ -5,6 +5,8 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "TurretAnimInterface.h"
 
+#define OUT
+
 #pragma region Setup Methods
 
 // Sets default values
@@ -30,6 +32,10 @@ ACppTurret::ACppTurret()
 
 	BeamTarget = CreateDefaultSubobject<USceneComponent>(TEXT("BeamTarget"));
 	BeamTarget->SetupAttachment(Root);
+
+	CollQueryParams.AddIgnoredActor(this);
+
+	SetBeamLength(BeamLength);
 }
 
 // Called when the game starts or when spawned
@@ -37,7 +43,8 @@ void ACppTurret::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ACppTurret::ChangeBeamTarget, ChangeTargetDelay, true, 1);
+	GetWorldTimerManager().SetTimer(ChangeTargetTimerHandle, this, &ACppTurret::ChangeBeamTarget, ChangeTargetDelay, true, 1);
+	GetWorldTimerManager().SetTimer(TraceTimerHandle, this, &ACppTurret::TraceBeam, 0.1f, true, 0.1f);
 }
 
 #pragma endregion
@@ -50,7 +57,10 @@ void ACppTurret::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	UpdateLookAtTarget(DeltaTime);
+	//TraceBeam();
 }
+
+#pragma region Turret Rotation
 
 void ACppTurret::UpdateLookAtTarget(float DeltaTime)
 {
@@ -120,5 +130,45 @@ void ACppTurret::ChangeBeamTarget()
 	RotationDelta = TargetRotation - LookAtRotation;
 	RotationDelta.Normalize();
 }
+
+#pragma endregion
+
+#pragma region Beam Length
+
+void ACppTurret::SetBeamLength(float Length)
+{
+	FVector scale = Beam->GetRelativeScale3D();
+	scale.X = Length / 400;
+	Beam->SetRelativeScale3D(scale);
+
+	Beam->SetRelativeLocation(FVector(Length / (-8), 0, 0));
+}
+
+void ACppTurret::TraceBeam()
+{
+	FHitResult HitResult;
+	FVector Start = TurretMesh->GetSocketLocation("BeamSocket");
+	FVector End = Start + Beam->GetForwardVector() * BeamLength;
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel
+	(
+		OUT HitResult,
+		Start,
+		End,
+		ECollisionChannel::ECC_Camera,
+		CollQueryParams
+	);
+
+	if (bHit)
+	{
+		SetBeamLength(HitResult.Distance);
+	}
+	else
+	{
+		SetBeamLength(BeamLength);
+	}
+}
+
+#pragma endregion
 
 #pragma endregion
