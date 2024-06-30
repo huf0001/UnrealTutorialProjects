@@ -5,6 +5,8 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "TurretAnimInterface.h"
 
+#pragma region Setup Methods
+
 // Sets default values
 ACppTurret::ACppTurret()
 {
@@ -35,27 +37,67 @@ void ACppTurret::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ACppTurret::ChangeBeamTarget, 5, true, 1);
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ACppTurret::ChangeBeamTarget, ChangeTargetDelay, true, 1);
 }
+
+#pragma endregion
+
+#pragma region Recurring Methods
 
 // Called every frame
 void ACppTurret::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	UpdateLookAtTarget();
+	UpdateLookAtTarget(DeltaTime);
 }
 
-void ACppTurret::UpdateLookAtTarget()
+void ACppTurret::UpdateLookAtTarget(float DeltaTime)
 {
-	FVector Start = TurretMesh->GetSocketLocation("BeamSocket");
-	FVector End = BeamTarget->GetComponentLocation();
-	FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(Start, End);
+	if (LookAtRotation.Equals(TargetRotation, TargetRotationErrorMargin))
+	{
+		return;
+	}
+
+	//From tutorial
+	/*
+	LookAtRotation += RotationDelta * RotationRateMultiplier * DeltaTime;
+	*/
+
+	//Custom code that clamps the rotation
+	FRotator RotationChange = RotationDelta * RotationRateMultiplier * DeltaTime;
+	FRotator RotationRemaining = TargetRotation - LookAtRotation;
+	LookAtRotation += MinMagnitude(RotationChange, RotationRemaining);
 	
+	//Continue from tutorial
 	if (TurretMesh->GetAnimInstance()->Implements<UTurretAnimInterface>())
 	{
 		ITurretAnimInterface::Execute_UpdateLookAtRotation(TurretMesh->GetAnimInstance(), LookAtRotation);
 	}
+}
+
+/// <summary>
+/// Return the FRotator with the smaller magnitude. Assumes a and b are rotations from the same starting rotation
+/// to the same end rotation, and that the rotation components (Pitch, Roll, Yaw) are facing the same direction 
+/// (+ or -) for a and b, but the magnitude of one is greater than the other.
+/// </summary>
+/// <param name="a">FRotator a.</param>
+/// <param name="b">FRotator b.</param>
+/// <returns>Whichever of a or b has the smaller magnitude.</returns>
+FRotator ACppTurret::MinMagnitude(FRotator a, FRotator b)
+{
+	//fabs() gets the absolute value of a float. Can use abs() to do that for floats and ints, but fabs() is
+	//apparently more efficient for floats.
+	if (
+		fabs(a.Pitch) <= fabs(b.Pitch) &&
+		fabs(a.Roll) <= fabs(b.Roll) &&
+		fabs(a.Yaw) <= fabs(b.Yaw)
+		)
+	{
+		return a;
+	}
+
+	return b;
 }
 
 void ACppTurret::ChangeBeamTarget()
@@ -70,5 +112,13 @@ void ACppTurret::ChangeBeamTarget()
 	{
 		BeamTarget->SetWorldLocation(Target2->GetComponentLocation());
 	}
+
+	FVector Start = TurretMesh->GetSocketLocation("BeamSocket");
+	FVector End = BeamTarget->GetComponentLocation();
+	TargetRotation = UKismetMathLibrary::FindLookAtRotation(Start, End);
+
+	RotationDelta = TargetRotation - LookAtRotation;
+	RotationDelta.Normalize();
 }
 
+#pragma endregion

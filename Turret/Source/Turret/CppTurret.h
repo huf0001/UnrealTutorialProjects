@@ -13,6 +13,8 @@ class TURRET_API ACppTurret : public AActor
 	GENERATED_BODY()
 
 private:
+
+#pragma region Private Serialized Variables
 	UPROPERTY(VisibleAnywhere)
 		USceneComponent* Root;
 	
@@ -32,16 +34,29 @@ private:
 		USceneComponent* BeamTarget;
 
 	UPROPERTY()
-		int TimerCount = 0;
-
-	UPROPERTY()
 		FTimerHandle TimerHandle;
 
-	UFUNCTION()
-		void UpdateLookAtTarget();
+	UPROPERTY(EditAnywhere)
+		float ChangeTargetDelay = 5.0f;
 
-	UFUNCTION()
-		void ChangeBeamTarget();
+	UPROPERTY(EditAnywhere)
+		float RotationRateMultiplier = 1.0f;
+
+	UPROPERTY(EditAnywhere)
+		float TargetRotationErrorMargin = 1.0f;
+
+#pragma endregion
+
+#pragma region Private Non-Serialized Variables
+
+	int TimerCount = 0;
+	FRotator LookAtRotation;
+	FRotator TargetRotation;
+	FRotator RotationDelta;
+
+#pragma endregion
+
+#pragma region Setup Methods
 
 public:	
 	// Sets default values for this actor's properties
@@ -51,8 +66,23 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+#pragma endregion
+
+#pragma region Recurring Methods
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+private:
+	UFUNCTION()
+		void UpdateLookAtTarget(float DeltaTime);
+
+		FRotator MinMagnitude(FRotator a, FRotator b);
+
+	UFUNCTION()
+		void ChangeBeamTarget();
+
+#pragma endregion
 
 };
