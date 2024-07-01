@@ -61,7 +61,15 @@ void ACppTurret::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	UpdateLookAtTarget(DeltaTime);
+	if (Enemy)
+	{
+		FollowEnemy(DeltaTime);
+	}
+	else
+	{
+		UpdateLookAtTarget(DeltaTime);
+	}
+
 	//TraceBeam();
 }
 
@@ -191,6 +199,24 @@ void ACppTurret::CheckEnemy(AActor* HitActor)
 			Enemy = HitActor;
 			//UE_LOG(LogTemp, Warning, TEXT("CppTurret.CheckEnemy(), enemy detected"));
 		}
+	}
+	else
+	{
+		Enemy = nullptr;
+	}
+}
+
+void ACppTurret::FollowEnemy(float DeltaTime)
+{
+	FVector Start = TurretMesh->GetSocketLocation("BeamSocket");
+	FVector End = Enemy->GetActorLocation();
+
+	FRotator RotationToEnemy = UKismetMathLibrary::FindLookAtRotation(Start, End);	
+	LookAtRotation = FMath::RInterpTo(LookAtRotation, RotationToEnemy, DeltaTime, FollowEnemyRotationRateMultiplier);
+
+	if (TurretMesh->GetAnimInstance()->Implements<UTurretAnimInterface>())
+	{
+		ITurretAnimInterface::Execute_UpdateLookAtRotation(TurretMesh->GetAnimInstance(), LookAtRotation);
 	}
 }
 

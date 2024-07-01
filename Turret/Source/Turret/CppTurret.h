@@ -67,6 +67,9 @@ private:
 	UPROPERTY()
 		AActor* Enemy;
 
+	UPROPERTY(EditAnywhere)
+		float FollowEnemyRotationRateMultiplier = 1.0f;
+
 #pragma endregion
 
 #pragma region Protected Non-Serialized Variables
@@ -125,6 +128,9 @@ private:
 
 	UFUNCTION()
 		void CheckEnemy(AActor* HitActor);
+
+	UFUNCTION()
+		void FollowEnemy(float DeltaTime);
 
 #pragma endregion
 
