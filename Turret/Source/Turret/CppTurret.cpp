@@ -2,8 +2,13 @@
 
 
 #include "CppTurret.h"
+
+#include "CharacterInterface.h"
 #include "Kismet/KismetMathLibrary.h"
+#include <iostream>
 #include "TurretAnimInterface.h"
+
+using namespace std;
 
 #define OUT
 
@@ -133,6 +138,8 @@ void ACppTurret::ChangeBeamTarget()
 
 #pragma endregion
 
+#pragma region Laser Beam
+
 #pragma region Beam Length
 
 void ACppTurret::SetBeamLength(float Length)
@@ -140,7 +147,6 @@ void ACppTurret::SetBeamLength(float Length)
 	FVector scale = Beam->GetRelativeScale3D();
 	scale.X = Length / 400;
 	Beam->SetRelativeScale3D(scale);
-
 	Beam->SetRelativeLocation(FVector(Length / (-8), 0, 0));
 }
 
@@ -162,12 +168,33 @@ void ACppTurret::TraceBeam()
 	if (bHit)
 	{
 		SetBeamLength(HitResult.Distance);
+		CheckEnemy(HitResult.GetActor());
 	}
 	else
 	{
 		SetBeamLength(BeamLength);
 	}
 }
+
+#pragma endregion
+
+#pragma region Enemy Detection
+
+void ACppTurret::CheckEnemy(AActor* HitActor)
+{
+	if (HitActor->Implements<UCharacterInterface>())
+	{
+		bool bEnemy = ICharacterInterface::Execute_IsEnemy(HitActor);
+
+		if (bEnemy)
+		{
+			Enemy = HitActor;
+			//UE_LOG(LogTemp, Warning, TEXT("CppTurret.CheckEnemy(), enemy detected"));
+		}
+	}
+}
+
+#pragma endregion
 
 #pragma endregion
 

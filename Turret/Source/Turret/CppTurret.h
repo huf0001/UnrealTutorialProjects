@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Engine/EngineTypes.h"
+
 #include "CppTurret.generated.h"
 
 UCLASS()
@@ -62,6 +63,10 @@ private:
 	UPROPERTY()
 		FTimerHandle TraceTimerHandle;
 
+	//Enemy Detection variables
+	UPROPERTY()
+		AActor* Enemy;
+
 #pragma endregion
 
 #pragma region Protected Non-Serialized Variables
@@ -117,6 +122,9 @@ private:
 
 	UFUNCTION()
 		void TraceBeam();
+
+	UFUNCTION()
+		void CheckEnemy(AActor* HitActor);
 
 #pragma endregion
 
