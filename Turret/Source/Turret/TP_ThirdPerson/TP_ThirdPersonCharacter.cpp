@@ -8,6 +8,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/Actor.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "InputActionValue.h"
@@ -132,5 +133,28 @@ void ATP_ThirdPersonCharacter::Look(const FInputActionValue& Value)
 
 bool ATP_ThirdPersonCharacter::IsEnemy_Implementation()
 {
-	return true;
+	return Health > 0;
+}
+
+float ATP_ThirdPersonCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
+{
+	if (Health <= 0)
+	{
+		return 0;
+	}
+
+	float DamageCaused = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	DamageCaused = FMath::Min(Health, DamageCaused);
+	Health -= DamageCaused;
+
+	if (Health <= 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("TP_ThirdPersonCharacter.TakeDamage(), character died..."));
+		DisableInput(GetWorld()->GetFirstPlayerController());
+		GetMesh()->SetSimulatePhysics(true);
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
+	return DamageCaused;
 }

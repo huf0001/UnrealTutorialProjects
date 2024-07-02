@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "../CharacterInterface.h"
@@ -49,6 +50,7 @@ class ATP_ThirdPersonCharacter : public ACharacter, public ICharacterInterface
 public:
 	ATP_ThirdPersonCharacter();
 	
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 protected:
 
@@ -57,7 +59,9 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-			
+
+	UPROPERTY(EditAnywhere)
+		float Health = 100.0f;			
 
 protected:
 	// APawn interface

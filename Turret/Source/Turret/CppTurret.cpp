@@ -4,6 +4,8 @@
 #include "CppTurret.h"
 
 #include "CharacterInterface.h"
+#include "Engine/DamageEvents.h"
+#include "Engine/EngineTypes.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include <iostream>
@@ -235,6 +237,26 @@ void ACppTurret::Shoot()
 {
 	UGameplayStatics::PlaySoundAtLocation(this, ShootSound, P_MuzzleFlash->GetComponentLocation());
 	P_MuzzleFlash->Activate(true);
+
+	FVector ShotDirection = Beam->GetForwardVector();
+	FHitResult HitResult;
+	FVector Start = TurretMesh->GetSocketLocation("BeamSocket");
+	FVector End = Start + ShotDirection * BeamLength;
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel
+	(
+		OUT HitResult,
+		Start,
+		End,
+		ECollisionChannel::ECC_Camera,
+		CollQueryParams
+	);
+
+	if (bHit)
+	{
+		FPointDamageEvent DamageEvent(TurretDamage, HitResult, ShotDirection, nullptr);
+		HitResult.GetActor()->TakeDamage(TurretDamage, DamageEvent, GetInstigatorController(), this);
+	}
 }
 
 #pragma endregion

@@ -85,6 +85,9 @@ private:
 	UPROPERTY(EditAnywhere)
 		float ShootingDelay = 0.4f;
 
+	UPROPERTY(EditAnywhere)
+		float TurretDamage = 10.0f;
+
 #pragma endregion
 
 #pragma region Protected Non-Serialized Variables
