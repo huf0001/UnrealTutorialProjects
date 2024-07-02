@@ -4,8 +4,10 @@
 #include "CppTurret.h"
 
 #include "CharacterInterface.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include <iostream>
+#include "Particles/ParticleSystemComponent.h"
 #include "TurretAnimInterface.h"
 
 using namespace std;
@@ -41,6 +43,10 @@ ACppTurret::ACppTurret()
 	CollQueryParams.AddIgnoredActor(this);
 
 	SetBeamLength(BeamLength);
+
+	P_MuzzleFlash = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Muzzle Flash"));
+	P_MuzzleFlash->SetupAttachment(TurretMesh, TEXT("BeamSocket"));
+	P_MuzzleFlash->SetAutoActivate(false);
 }
 
 // Called when the game starts or when spawned
@@ -146,8 +152,6 @@ void ACppTurret::ChangeBeamTarget()
 
 #pragma endregion
 
-#pragma region Laser Beam
-
 #pragma region Beam Length
 
 void ACppTurret::SetBeamLength(float Length)
@@ -190,19 +194,22 @@ void ACppTurret::TraceBeam()
 
 void ACppTurret::CheckEnemy(AActor* HitActor)
 {
-	if (HitActor->Implements<UCharacterInterface>())
+	if (HitActor->Implements<UCharacterInterface>() && ICharacterInterface::Execute_IsEnemy(HitActor))
 	{
-		bool bEnemy = ICharacterInterface::Execute_IsEnemy(HitActor);
-
-		if (bEnemy)
+		if (!Enemy)
 		{
-			Enemy = HitActor;
-			//UE_LOG(LogTemp, Warning, TEXT("CppTurret.CheckEnemy(), enemy detected"));
-		}
+			Enemy = HitActor;			
+			GetWorldTimerManager().SetTimer(ShootTimerHandle, this, &ACppTurret::Shoot, ShootingDelay, true, ShootingDelay);
+			//UE_LOG(LogTemp, Warning, TEXT("CppTurret.CheckEnemy(), enemy detected"));;
+		}		
 	}
 	else
 	{
-		Enemy = nullptr;
+		if (Enemy)
+		{
+			Enemy = nullptr;
+			GetWorldTimerManager().ClearTimer(ShootTimerHandle);
+		}
 	}
 }
 
@@ -221,6 +228,14 @@ void ACppTurret::FollowEnemy(float DeltaTime)
 }
 
 #pragma endregion
+
+#pragma region Shooting
+
+void ACppTurret::Shoot()
+{
+	UGameplayStatics::PlaySoundAtLocation(this, ShootSound, P_MuzzleFlash->GetComponentLocation());
+	P_MuzzleFlash->Activate(true);
+}
 
 #pragma endregion
 

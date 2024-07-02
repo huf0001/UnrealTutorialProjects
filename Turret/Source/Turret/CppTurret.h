@@ -45,6 +45,17 @@ private:
 	UPROPERTY(VisibleAnywhere)
 		USceneComponent* BeamTarget;
 
+	//Turret Shooting Components
+	UPROPERTY(EditDefaultsOnly, Category = Shooting)
+		UParticleSystemComponent* P_MuzzleFlash;
+
+	UPROPERTY(EditDefaultsOnly, Category = Shooting)
+		USoundBase* ShootSound;
+
+	UPROPERTY()
+		FTimerHandle ShootTimerHandle;
+		
+
 	//Rotation variables
 	UPROPERTY()
 		FTimerHandle ChangeTargetTimerHandle;
@@ -69,6 +80,10 @@ private:
 
 	UPROPERTY(EditAnywhere)
 		float FollowEnemyRotationRateMultiplier = 1.0f;
+
+	//Shooting variables
+	UPROPERTY(EditAnywhere)
+		float ShootingDelay = 0.4f;
 
 #pragma endregion
 
@@ -131,6 +146,9 @@ private:
 
 	UFUNCTION()
 		void FollowEnemy(float DeltaTime);
+
+	UFUNCTION()
+		void Shoot();
 
 #pragma endregion
 
